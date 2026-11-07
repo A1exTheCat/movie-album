@@ -270,7 +270,19 @@ function App() {
       </div>
     </main>
 
-    <footer className="app-footer"><span>MADE FOR THE LOVE OF FILM</span><span className="tmdb-credit">Movie data and images from <strong>TMDB</strong></span></footer>
+    <footer className="app-footer">
+      <span className="app-footer-note">MADE FOR THE LOVE OF FILM</span>
+      <section className="tmdb-credits" aria-label="Credits">
+        <a className="tmdb-logo-link" href="https://www.themoviedb.org" target="_blank" rel="noreferrer" aria-label="The Movie Database (TMDB)">
+          <img className="tmdb-logo" src={`${import.meta.env.BASE_URL}tmdb-logo.svg`} alt="TMDB" />
+        </a>
+        <div className="tmdb-credit-copy">
+          <span className="tmdb-credit-label">CREDITS</span>
+          <span>Movie data and images from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a></span>
+          <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        </div>
+      </section>
+    </footer>
     {searchOpen && <SearchDialog entries={entries} onClose={closeOverlay} onAdd={addMovie} onOpenMovie={id => { setSearchOpen(false); setActiveMovie(id); }} isSaving={isSaving}/>}
     {activeMovie !== null && <MovieDialog movie={activeDetails} record={activeRecord} loadError={movieError} onRetry={() => { setMovieError(''); void getMovie(activeMovie).then(movie => setMovies(current => ({ ...current, [activeMovie]: movie }))).catch(error => setMovieError(error instanceof Error ? error.message : 'Could not load movie details.')); }} onClose={closeOverlay} onWatched={toggleWatched} onRemove={() => setConfirmDelete(true)} onAdd={addMovie} confirmDelete={confirmDelete} onCancelDelete={() => setConfirmDelete(false)} onConfirmDelete={removeMovie} isSaving={isSaving}/>}
     {notice && <div className="toast" role="status"><span className="toast-check"><Icon name="check" size={15}/></span>{notice}<button aria-label="Dismiss notification" onClick={() => setNotice('')}><Icon name="close" size={15}/></button></div>}

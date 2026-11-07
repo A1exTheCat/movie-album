@@ -93,3 +93,15 @@
 @media(max-width:650px){.album-book{height:403px;min-height:0}.book-spread,.album-page{height:367px;min-height:0}}
 @media(max-width:650px){.book-spread.turn-next .album-page.left,.book-spread.turn-previous .album-page.left{visibility:hidden}}
 @media(max-width:650px){.album-layout{display:grid;grid-template-columns:82px minmax(0,1fr);gap:0;align-items:start}.secondary-nav{position:relative;top:auto;z-index:4;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:4px;overflow:visible;width:82px;margin:0;padding:39px 0 0;background:transparent}.secondary-tab,.secondary-tab.active,.secondary-tab:hover{width:82px;min-height:38px;flex:0 0 auto;margin:0;padding:7px 8px;border:1px solid #d3c8b7;border-right:0;border-radius:5px 0 0 5px;white-space:nowrap;background:linear-gradient(180deg,#f1ebdf,#e7dece);font-size:9px;box-shadow:inset 0 1px #fff8}.secondary-tab.active{background:linear-gradient(180deg,#fbf9f3,#e8dfd0);box-shadow:inset 0 2px var(--red),0 2px 4px #59482d10}.secondary-tab small{font-size:7px;margin-left:3px}.clear-filter{align-self:flex-end;flex:0 0 auto;margin:0;padding:7px 4px;font-size:8px}.album-stage{min-width:0}.album-toolbar{padding-left:9px;padding-right:9px}}
+
+/* TMDB credits follow the provider's attribution layout requirements. */
+.app-footer{align-items:center;gap:24px}
+.tmdb-credits{display:flex;align-items:center;gap:12px}
+.tmdb-logo-link{display:block;flex:0 0 auto;line-height:0}
+.tmdb-logo{display:block;width:90px;height:auto}
+.tmdb-credit-copy{font-family:'DM Sans',sans-serif;font-size:10px;line-height:1.5;letter-spacing:0;color:#817a6d}
+.tmdb-credit-copy a{font-family:var(--mono);font-size:9px;letter-spacing:.6px;text-decoration:underline;text-underline-offset:2px}
+.tmdb-credit-copy p{margin:2px 0 0;font-size:9px;color:#777064}
+.app-footer-note{flex:0 0 auto}
+@media(max-width:650px){.app-footer{align-items:flex-start;flex-direction:column;gap:13px;padding-bottom:22px}.tmdb-credits{align-items:flex-start;gap:10px}.tmdb-logo{width:78px}.tmdb-credit-copy{font-size:9px}.tmdb-credit-copy p{font-size:8px}}
+.tmdb-credit-label{display:block;margin-bottom:2px;font:8px var(--mono);letter-spacing:1px;color:#9a5a49}

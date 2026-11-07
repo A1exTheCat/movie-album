@@ -31,7 +31,7 @@ To preserve the collection currently open at `localhost:5173`, first add the Sup
 
 For the public site, TMDB requests go through the Supabase Edge Function in `supabase/functions/tmdb`; the TMDB token stays in Supabase's server-side function secrets. The local direct-token setting is for local use only and must not be added to the GitHub Actions build.
 
-TMDB requires attribution for its data and images. This app currently credits TMDB in the interface; confirm its current attribution requirements and add the official logo before public release.
+TMDB attribution appears in the app footer with the official TMDB logo, a link to TMDB, and the required notice: “This product uses the TMDB API but is not endorsed or certified by TMDB.” The logo is bundled from TMDB's official Logos & Attribution page and is displayed without modification. Movie data and images remain TMDB's materials; this personal project is intended for non-commercial use. If the project's primary purpose changes to generating revenue, contact TMDB about a commercial license before continuing that use.
 
 ## Album behavior
 
