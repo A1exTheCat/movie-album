@@ -1,0 +1,4 @@
+project_id = "movie-album"
+
+[functions.tmdb]
+verify_jwt = false
