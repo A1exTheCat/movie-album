@@ -30,7 +30,7 @@ Deno.serve(async request => {
   if (!allowedRoute) return new Response('TMDB route is not allowed', { status: 403, headers: corsHeaders });
 
   try {
-    const upstream = await fetch(`${TMDB_BASE}${tmdbPath.pathname}${tmdbPath.search}`, {
+    const upstream = await fetch(tmdbPath.toString(), {
       headers: { Authorization: `Bearer ${token}`, accept: 'application/json' },
     });
     return new Response(await upstream.text(), {
