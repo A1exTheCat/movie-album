@@ -51,11 +51,12 @@ function App() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia('(max-width: 650px)').matches);
+  const [mobilePageSize, setMobilePageSize] = useState(() => window.innerHeight <= 500 ? 4 : window.innerHeight <= 850 ? 6 : 9);
   const [wideLayout, setWideLayout] = useState(() => window.matchMedia('(min-width: 851px)').matches);
   const turnTimeoutRef = useRef<number | null>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const albumRef = useRef<HTMLDivElement>(null);
-  const pageSize = mobileLayout ? 6 : 12;
+  const pageSize = mobileLayout ? mobilePageSize : 16;
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 650px)');
@@ -69,6 +70,12 @@ function App() {
     const update = () => setWideLayout(query.matches);
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    const update = () => setMobilePageSize(window.innerHeight <= 500 ? 4 : window.innerHeight <= 850 ? 6 : 9);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
   }, []);
 
   const loadMovies = useCallback(async (ids: number[]) => {
@@ -120,17 +127,18 @@ function App() {
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
   const visibleRecords = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-  const leftPage = visibleRecords.slice(0, 6);
-  const rightPage = mobileLayout ? [] : visibleRecords.slice(6, 12);
+  const leftPage = visibleRecords.slice(0, mobileLayout ? pageSize : 8);
+  const rightPage = mobileLayout ? [] : visibleRecords.slice(8, 16);
   const activeRecord = records.find(item => item.tmdb_id === activeMovie);
   const activeDetails = activeMovie ? movies[activeMovie] : undefined;
-  const showRightFilters = wideLayout && choices.length > 12;
+  const showRightFilters = wideLayout && choices.length > 30;
   const filterSplit = showRightFilters ? Math.ceil(choices.length / 2) : choices.length;
   const leftChoices = choices.slice(0, filterSplit);
-  const rightChoices = choices.slice(filterSplit);
-  const filterDensity = choices.length > (wideLayout ? 36 : 18)
-    ? 'ultra'
-    : choices.length > (wideLayout ? 24 : 12) ? 'compact' : 'regular';
+  const rightChoices = showRightFilters ? choices.slice(filterSplit) : [];
+  const filterDensity = choices.length > 150 ? 'archive' : choices.length > 90 ? 'packed' : choices.length > 30 ? 'ultra' : choices.length > 12 ? 'compact' : 'regular';
+  const headerTitle = section === 'All Movies' ? (sub === 'All' ? 'All Movies' : sub) : sub || section.replace('By ', '');
+  const headerSubtitle = section === 'By Decade' ? 'The New Hollywood' : section === 'All Movies' ? 'A life in movies' : section;
+  const watchedCount = filtered.filter(item => item.watched).length;
 
   const countForChoice = (choice: string) => section === 'All Movies'
     ? records.filter(item => choice === 'All' || (choice === 'Watched' ? item.watched : !item.watched)).length
@@ -140,7 +148,7 @@ function App() {
         ? item.movie?.genres?.some(genre => genre.name === choice)
         : (item.movie ? decadeOf(item.movie) : 'Unknown year') === choice).length;
 
-  const renderSideFilters = (items: string[]) => items.map(choice => <button key={choice} className={`secondary-tab ${sub === choice ? 'active' : ''}`} onClick={() => { if (turnTimeoutRef.current !== null) window.clearTimeout(turnTimeoutRef.current); turnTimeoutRef.current = null; setTurnDirection(null); setSub(choice); setPage(0); }}>
+  const renderSideFilters = (items: string[]) => items.map(choice => <button key={choice} title={choice} className={`secondary-tab ${sub === choice ? 'active' : ''}`} onClick={() => { if (turnTimeoutRef.current !== null) window.clearTimeout(turnTimeoutRef.current); turnTimeoutRef.current = null; setTurnDirection(null); setSub(choice); setPage(0); }}>
     <span>{choice}</span><small>{countForChoice(choice).toString().padStart(2, '0')}</small>{sub === choice && <span className="side-active-line"/>}
   </button>);
 
@@ -241,6 +249,14 @@ function App() {
   }, [searchOpen, activeMovie]);
 
   const closeOverlay = () => { setSearchOpen(false); setActiveMovie(null); setConfirmDelete(false); };
+  const watchRandomMovie = () => {
+    const unwatched = entries.filter(entry => !entry.watched);
+    if (!unwatched.length) { setNotice('No unwatched movies in your collection'); return; }
+    const choice = unwatched[Math.floor(Math.random() * unwatched.length)];
+    setMovieError('');
+    setConfirmDelete(false);
+    setActiveMovie(choice.tmdb_id);
+  };
 
   return <div className="app-shell">
     <header className="topbar">
@@ -248,23 +264,16 @@ function App() {
         <span className="wordmark-icon"><Icon name="film" size={20}/></span>
         <span>movie<span className="wordmark-light">album</span><i>.</i></span>
       </a>
+      <div className="topbar-context" aria-live="polite"><strong>{headerTitle}</strong><span>{headerSubtitle}</span></div>
+      <div className="topbar-progress" aria-label={`${watchedCount} of ${filtered.length} movies watched`}><strong>{String(watchedCount).padStart(2, '0')} <i>/</i> {String(filtered.length).padStart(2, '0')}</strong><span>watched</span></div>
       <div className="topbar-right">
         <span className="private-label"><span className="private-dot"/> PUBLIC COLLECTION</span>
+        <button className="watch-button" onClick={watchRandomMovie}><Icon name="film" size={16}/><span>Watch</span></button>
         <button ref={searchButtonRef} className="icon-button search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search movies"><Icon name="search"/></button>
       </div>
     </header>
 
     <main id="album" className="main-content">
-      <div className="intro-row">
-        <div><p className="eyebrow">YOUR PERSONAL CINEMA</p><h1>A life in <em>movies.</em></h1></div>
-        <CollectionPlaque stats={{
-          label: section === 'All Movies' && sub === 'All' ? 'The collection' : sub,
-          total: filtered.length,
-          watched: filtered.filter(item => item.watched).length,
-          toWatch: filtered.filter(item => !item.watched).length,
-        }} />
-      </div>
-
       <nav className="primary-tabs" aria-label="Album sections">
         {SECTIONS.map((item, index) => <button key={item} className={`primary-tab ${section === item ? 'active' : ''}`} onClick={() => goSection(item)} aria-current={section === item ? 'page' : undefined}>
           <span className="tab-index">0{index + 1}</span>{item}
@@ -278,10 +287,9 @@ function App() {
         </button>)}
       </nav>
 
-      <div className={`album-layout ${showRightFilters ? 'has-right-filters' : ''} filter-density-${filterDensity}`}>
+      <div className={`album-layout filter-density-${filterDensity}${showRightFilters ? ' has-right-filters' : ''}`}>
         <aside className="secondary-nav secondary-nav-left" aria-label={`${section} filters`}>
           {choices.length === 0 ? <p className="side-empty">Groups appear as your collection grows.</p> : renderSideFilters(leftChoices)}
-          {section !== 'All Movies' && <button className="clear-filter" onClick={() => goSection('All Movies')}>← All movies</button>}
         </aside>
 
         <section className="album-stage" aria-label="Movie album">
@@ -302,7 +310,7 @@ function App() {
           </div>
           <div className="album-footer"><span className="footer-note"><span className="footer-line"/> A LITTLE SPACE FOR EVERY STORY</span><div className="pager-controls"><button aria-label="Previous spread" disabled={currentPage === 0} onClick={() => changePage(-1)}><Icon name="left" size={16}/></button><span>{String(currentPage + 1).padStart(2, '0')} <i>—</i> {String(pageCount).padStart(2, '0')}</span><button aria-label="Next spread" disabled={currentPage >= pageCount - 1} onClick={() => changePage(1)}><Icon name="right" size={16}/></button></div></div>
         </section>
-        {showRightFilters && <aside className="secondary-nav secondary-nav-right" aria-label={`${section} more filters`}>
+        {showRightFilters && <aside className="secondary-nav secondary-nav-right" aria-label={`${section} filters, continued`}>
           {renderSideFilters(rightChoices)}
         </aside>}
       </div>
@@ -327,19 +335,10 @@ function App() {
   </div>;
 }
 
-type PageStats = { label: string; total: number; watched: number; toWatch: number };
-
-function CollectionPlaque({ stats }: { stats: PageStats }) {
-  return <div className="collection-plaque">
-    <div className="plaque-heading"><span>PERSONAL ARCHIVE</span></div>
-    <div className="plaque-title"><h2>{stats.label}</h2><span><strong>{String(stats.total).padStart(2, '0')}</strong> films</span></div>
-    <div className="plaque-stats"><span>WATCHED <b>{String(stats.watched).padStart(2, '0')}</b></span><span>TO WATCH <b>{String(stats.toWatch).padStart(2, '0')}</b></span></div>
-  </div>;
-}
-
 function AlbumPage({ records, side, loading, onOpen }: { records: AlbumRecord[]; side: 'left' | 'right'; loading: boolean; onOpen: (id: number) => void }) {
   return <div className={`album-page ${side}`}>
-    <span className="page-corner" aria-hidden="true"/><div className="page-filmstrip" aria-hidden="true"><i/><i/><i/><i/><i/></div>
+    <span className="page-corner" aria-hidden="true"/>
+    <div className="page-filmstrip" aria-hidden="true"><i/><i/><i/><i/><i/></div>
     {loading ? <div className="poster-grid">{Array.from({ length: 4 }).map((_, index) => <div className="poster-skeleton" key={index}/>)}</div> : <div className="poster-grid">{records.map((record, index) => {
       const movie = record.movie;
       return <button className={`poster-card ${record.watched ? 'watched' : 'unwatched'}`} key={record.tmdb_id} onClick={() => onOpen(record.tmdb_id)} aria-label={`${movie?.title || 'Movie'}${record.watched ? ', watched' : ', not watched'}`} title={movie?.title || undefined}>
