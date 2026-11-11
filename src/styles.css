@@ -105,3 +105,48 @@
 .app-footer-note{flex:0 0 auto}
 @media(max-width:650px){.app-footer{align-items:flex-start;flex-direction:column;gap:13px;padding-bottom:22px}.tmdb-credits{align-items:flex-start;gap:10px}.tmdb-logo{width:78px}.tmdb-credit-copy{font-size:9px}.tmdb-credit-copy p{font-size:8px}}
 .tmdb-credit-label{display:block;margin-bottom:2px;font:8px var(--mono);letter-spacing:1px;color:#9a5a49}
+
+/* On phones, move section navigation to a persistent bottom bar and turn
+   the many dynamic side filters into one compact native picker. */
+.mobile-section-nav,.mobile-filter{display:none}
+@media(max-width:650px){
+  .primary-tabs,.secondary-nav{display:none!important}
+  .mobile-section-nav{position:fixed;z-index:20;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:7px 8px max(7px,env(safe-area-inset-bottom));border-top:1px solid #d8cebd;background:#fbf9f3f2;box-shadow:0 -5px 20px #4e3e2910;backdrop-filter:blur(14px)}
+  .mobile-section-nav button{min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:7px;background:transparent;color:#898174;font-size:9px;cursor:pointer}
+  .mobile-section-nav button.active{color:var(--red);background:#a84c3d0d;font-weight:600}
+  .mobile-section-nav button:focus-visible{outline-offset:-2px}
+  .mobile-filter{height:43px;display:flex;align-items:center;gap:10px;padding:0 12px;margin:0 0 9px;border:1px solid #d7cdbd;border-radius:5px;background:#f8f5ed;color:#968b7b}
+  .mobile-filter>span{flex:0 0 auto;font:8px var(--mono);letter-spacing:1px}
+  .mobile-filter select{width:100%;min-width:0;height:40px;border:0;outline:0;background:transparent;color:var(--ink);font:500 12px 'DM Sans',sans-serif;text-overflow:ellipsis}
+  .mobile-filter select:disabled{opacity:.65}
+  .mobile-filter:focus-within{outline:2px solid #386b85;outline-offset:2px}
+  .album-layout{display:block!important;width:100%;margin:0}
+  .album-stage{width:100%;min-width:0}
+  .main-content{padding-bottom:24px}
+  .app-shell{padding-bottom:76px}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .app-footer{margin-bottom:0}
+}
+@media(max-width:360px){
+  .mobile-section-nav{padding-right:5px;padding-left:5px}
+  .mobile-section-nav button{font-size:8px}
+  .mobile-filter{gap:7px;padding-right:8px;padding-left:9px}
+}
+
+/* Keep long filter lists inside the album rails; on wide screens, share them
+   between both edges of the book before tightening the bookmark spacing. */
+@media(min-width:651px){
+  .secondary-nav{max-height:628px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#cfc4b2 transparent}
+  .album-layout.has-right-filters{grid-template-columns:122px minmax(0,1fr) 122px;gap:0;align-items:start}
+  .has-right-filters .secondary-nav{width:122px;margin:0;align-items:flex-end}
+  .has-right-filters .secondary-nav-right{align-items:flex-start}
+  .secondary-nav-right .secondary-tab,.secondary-nav-right .secondary-tab:hover,.secondary-nav-right .secondary-tab.active{width:122px;border-right:1px solid #d2c7b6;border-left:0;border-radius:0 4px 4px 0;background:linear-gradient(270deg,#e6ddce 0%,#eee7d9 100%)}
+  .secondary-nav-right .secondary-tab.active{background:linear-gradient(270deg,#f5f0e6,#fbf9f3);box-shadow:inset -2px 0 var(--red),inset 0 1px #fff,0 2px 5px #59482d10}
+  .secondary-nav-right .secondary-tab:hover{background:linear-gradient(270deg,#f0e9dc,#f6f1e8)}
+  .secondary-nav-right .secondary-tab .side-active-line{display:none}
+  .filter-density-compact .secondary-tab,.filter-density-compact .secondary-tab:hover,.filter-density-compact .secondary-tab.active{min-height:27px;margin-bottom:3px;padding:4px 8px;font-size:9px}
+  .filter-density-compact .secondary-tab small{font-size:7px}
+  .filter-density-ultra .secondary-tab,.filter-density-ultra .secondary-tab:hover,.filter-density-ultra .secondary-tab.active{min-height:18px;margin-bottom:1px;padding:2px 7px;font-size:8px;line-height:1}
+  .filter-density-ultra .secondary-tab small{font-size:6px}
+}
+@media(min-width:1150px){.secondary-nav{max-height:498px}}

@@ -21,13 +21,16 @@ function trapDialogTab(event: KeyboardEvent<HTMLDivElement>) {
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
-function Icon({ name, size = 18 }: { name: 'search' | 'plus' | 'left' | 'right' | 'close' | 'arrow' | 'film' | 'check' | 'trash' | 'info'; size?: number }) {
+function Icon({ name, size = 18 }: { name: 'search' | 'plus' | 'left' | 'right' | 'close' | 'arrow' | 'film' | 'check' | 'trash' | 'info' | 'director' | 'genre' | 'decade'; size?: number }) {
   const paths: Record<string, ReactNode> = {
     search: <><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></>, plus: <><path d="M12 5v14M5 12h14"/></>,
     left: <><path d="m15 18-6-6 6-6"/></>, right: <><path d="m9 18 6-6-6-6"/></>, close: <><path d="m18 6-12 12M6 6l12 12"/></>,
     arrow: <><path d="M7 17 17 7M7 7h10v10"/></>, film: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/></>,
     check: <><path d="m5 12 4 4L19 6"/></>, trash: <><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></>,
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></>,
+    director: <><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.4-3.5 2.8-5.5 7-5.5s6.6 2 7 5.5"/></>,
+    genre: <><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="10" cy="19" r="1.5" fill="currentColor"/></>,
+    decade: <><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M7 3v4m10-4v4M4 10h16m-11 4h2m3 0h2m-7 3h2"/></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -48,6 +51,7 @@ function App() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia('(max-width: 650px)').matches);
+  const [wideLayout, setWideLayout] = useState(() => window.matchMedia('(min-width: 851px)').matches);
   const turnTimeoutRef = useRef<number | null>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const albumRef = useRef<HTMLDivElement>(null);
@@ -56,6 +60,13 @@ function App() {
   useEffect(() => {
     const query = window.matchMedia('(max-width: 650px)');
     const update = () => setMobileLayout(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 851px)');
+    const update = () => setWideLayout(query.matches);
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
   }, []);
@@ -113,6 +124,25 @@ function App() {
   const rightPage = mobileLayout ? [] : visibleRecords.slice(6, 12);
   const activeRecord = records.find(item => item.tmdb_id === activeMovie);
   const activeDetails = activeMovie ? movies[activeMovie] : undefined;
+  const showRightFilters = wideLayout && choices.length > 12;
+  const filterSplit = showRightFilters ? Math.ceil(choices.length / 2) : choices.length;
+  const leftChoices = choices.slice(0, filterSplit);
+  const rightChoices = choices.slice(filterSplit);
+  const filterDensity = choices.length > (wideLayout ? 36 : 18)
+    ? 'ultra'
+    : choices.length > (wideLayout ? 24 : 12) ? 'compact' : 'regular';
+
+  const countForChoice = (choice: string) => section === 'All Movies'
+    ? records.filter(item => choice === 'All' || (choice === 'Watched' ? item.watched : !item.watched)).length
+    : records.filter(item => section === 'By Director'
+      ? item.movie?.director === choice
+      : section === 'By Genre'
+        ? item.movie?.genres?.some(genre => genre.name === choice)
+        : (item.movie ? decadeOf(item.movie) : 'Unknown year') === choice).length;
+
+  const renderSideFilters = (items: string[]) => items.map(choice => <button key={choice} className={`secondary-tab ${sub === choice ? 'active' : ''}`} onClick={() => { if (turnTimeoutRef.current !== null) window.clearTimeout(turnTimeoutRef.current); turnTimeoutRef.current = null; setTurnDirection(null); setSub(choice); setPage(0); }}>
+    <span>{choice}</span><small>{countForChoice(choice).toString().padStart(2, '0')}</small>{sub === choice && <span className="side-active-line"/>}
+  </button>);
 
   useEffect(() => {
     setPage(current => Math.min(current, Math.max(0, pageCount - 1)));
@@ -242,18 +272,24 @@ function App() {
         </button>)}
       </nav>
 
-      <div className="album-layout">
-        <aside className="secondary-nav" aria-label={`${section} filters`}>
-          {choices.length === 0 ? <p className="side-empty">Groups appear as your collection grows.</p> : choices.map(choice => {
-            const count = section === 'All Movies' ? records.filter(item => choice === 'All' || (choice === 'Watched' ? item.watched : !item.watched)).length : records.filter(item => section === 'By Director' ? item.movie?.director === choice : section === 'By Genre' ? item.movie?.genres?.some(genre => genre.name === choice) : (item.movie ? decadeOf(item.movie) : 'Unknown year') === choice).length;
-            return <button key={choice} className={`secondary-tab ${sub === choice ? 'active' : ''}`} onClick={() => { if (turnTimeoutRef.current !== null) window.clearTimeout(turnTimeoutRef.current); turnTimeoutRef.current = null; setTurnDirection(null); setSub(choice); setPage(0); }}>
-              <span>{choice}</span><small>{count.toString().padStart(2, '0')}</small>{sub === choice && <span className="side-active-line"/>}
-            </button>;
-          })}
+      <nav className="mobile-section-nav" aria-label="Album sections">
+        {SECTIONS.map((item, index) => <button key={item} className={section === item ? 'active' : ''} onClick={() => goSection(item)} aria-current={section === item ? 'page' : undefined}>
+          <Icon name={index === 0 ? 'film' : index === 1 ? 'director' : index === 2 ? 'genre' : 'decade'} size={19}/>
+          <span>{['All', 'Director', 'Genre', 'Decade'][index]}</span>
+        </button>)}
+      </nav>
+
+      <div className={`album-layout ${showRightFilters ? 'has-right-filters' : ''} filter-density-${filterDensity}`}>
+        <aside className="secondary-nav secondary-nav-left" aria-label={`${section} filters`}>
+          {choices.length === 0 ? <p className="side-empty">Groups appear as your collection grows.</p> : renderSideFilters(leftChoices)}
           {section !== 'All Movies' && <button className="clear-filter" onClick={() => goSection('All Movies')}>← All movies</button>}
         </aside>
 
         <section className="album-stage" aria-label="Movie album">
+          <label className="mobile-filter"><span>{section === 'All Movies' ? 'SHOW' : section.replace('By ', '').toUpperCase()}</span><select value={sub} disabled={choices.length === 0} aria-label={`${section} filter`} onChange={event => { if (turnTimeoutRef.current !== null) window.clearTimeout(turnTimeoutRef.current); turnTimeoutRef.current = null; setTurnDirection(null); setSub(event.target.value); setPage(0); }}>
+            {choices.length ? choices.map(choice => <option key={choice} value={choice}>{choice}</option>) : <option value="">No filters yet</option>}
+          </select>
+          </label>
           {setupError && !isTmdbConfigured() && <div className="setup-note"><div className="setup-note-icon"><Icon name="info"/></div><div><strong>Connect TMDB to get started</strong><p>For a published site, configure the Supabase TMDB function. For local use, add the API Read Access Token to <code>.env.local</code>.</p><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer">Get a TMDB key <Icon name="arrow" size={13}/></a></div><button aria-label="Dismiss setup note" onClick={() => setSetupError('')}><Icon name="close" size={16}/></button></div>}
           {setupError && isTmdbConfigured() && <div className="inline-error" role="status">{setupError} <button onClick={() => { setSetupError(''); void loadMovies(entries.map(item => item.tmdb_id)); }}>Try again</button></div>}
           <div className="album-book" ref={albumRef} tabIndex={0} onKeyDown={onAlbumKeyDown} aria-label={`Album spread ${currentPage + 1} of ${pageCount}. Use left and right arrow keys to turn pages.`}>
@@ -267,6 +303,9 @@ function App() {
           </div>
           <div className="album-footer"><span className="footer-note"><span className="footer-line"/> A LITTLE SPACE FOR EVERY STORY</span><div className="pager-controls"><button aria-label="Previous spread" disabled={currentPage === 0} onClick={() => changePage(-1)}><Icon name="left" size={16}/></button><span>{String(currentPage + 1).padStart(2, '0')} <i>—</i> {String(pageCount).padStart(2, '0')}</span><button aria-label="Next spread" disabled={currentPage >= pageCount - 1} onClick={() => changePage(1)}><Icon name="right" size={16}/></button></div></div>
         </section>
+        {showRightFilters && <aside className="secondary-nav secondary-nav-right" aria-label={`${section} more filters`}>
+          {renderSideFilters(rightChoices)}
+        </aside>}
       </div>
     </main>
 
