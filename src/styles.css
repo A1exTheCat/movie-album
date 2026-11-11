@@ -133,6 +133,14 @@
   .mobile-filter{gap:7px;padding-right:8px;padding-left:9px}
 }
 
+/* Keep mobile Safari from zooming the page when form controls receive focus.
+   The 16px minimum prevents focus zoom; manipulation also disables double-tap
+   zoom while leaving pinch-to-zoom available for accessibility. */
+@media(max-width:650px){
+  input,select,textarea{font-size:16px!important}
+}
+html{touch-action:manipulation}
+
 /* Keep long filter lists inside the album rails; on wide screens, share them
    between both edges of the book before tightening the bookmark spacing. */
 @media(min-width:651px){

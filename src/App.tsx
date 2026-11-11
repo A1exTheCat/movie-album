@@ -251,7 +251,6 @@ function App() {
       <div className="topbar-right">
         <span className="private-label"><span className="private-dot"/> PUBLIC COLLECTION</span>
         <button ref={searchButtonRef} className="icon-button search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search movies"><Icon name="search"/></button>
-        <button className="add-button" onClick={() => setSearchOpen(true)}><Icon name="plus" size={17}/><span>Add a movie</span></button>
       </div>
     </header>
 
