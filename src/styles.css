@@ -17,9 +17,10 @@
 
 /* Turn a single paper leaf over the newly revealed spread. */
 .book-spread{position:relative;transform-style:preserve-3d;animation:none}
-.book-spread::after{content:"";position:absolute;z-index:6;top:0;bottom:0;width:50%;pointer-events:none;background:linear-gradient(90deg,#e8dfcf 0%,#fbf9f3 5%,#fbf9f3 78%,#eee7da 100%);box-shadow:0 0 0 transparent;backface-visibility:hidden;transform-style:preserve-3d}
+.book-spread{--album-page-color:#efcf9f}.album-page{background:var(--album-page-color);background-image:none}
+.book-spread::after{content:"";position:absolute;z-index:6;top:0;bottom:0;width:50%;pointer-events:none;background:var(--album-page-color,#efcf9f);box-shadow:0 0 0 transparent;backface-visibility:hidden;transform-style:preserve-3d}
 .book-spread.turn-next::after{left:50%;transform-origin:left center;animation:leaf-turn-next 1.2s cubic-bezier(.62,.02,.34,1) both}
-.book-spread.turn-previous::after{left:0;transform-origin:right center;background:linear-gradient(270deg,#e8dfcf 0%,#fbf9f3 5%,#fbf9f3 78%,#eee7da 100%);animation:leaf-turn-previous 1.2s cubic-bezier(.62,.02,.34,1) both}
+.book-spread.turn-previous::after{left:0;transform-origin:right center;animation:leaf-turn-previous 1.2s cubic-bezier(.62,.02,.34,1) both}
 .book-spread.turn-next::after,.book-spread.turn-previous::after{backface-visibility:visible}
 .book-spread.turn-next .album-page.right,.book-spread.turn-previous .album-page.left{visibility:hidden}
 @keyframes leaf-turn-next{0%{transform:rotateY(0);box-shadow:-8px 0 15px #594a3520}42%{transform:rotateY(-92deg);box-shadow:-19px 3px 25px #594a3540}100%{transform:rotateY(-180deg);box-shadow:-4px 0 9px #594a3512}}
